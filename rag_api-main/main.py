@@ -79,15 +79,22 @@ if debug_mode:
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    body = await request.body()
+    # Try to read body, but handle file uploads (multipart) where stream is consumed
+    try:
+        body = await request.body()
+        body_str = body.decode()
+    except RuntimeError:
+        # Stream already consumed (e.g., file upload)
+        body_str = "<body already consumed - likely file upload>"
+
     logger.debug(f"Validation error occurred")
-    logger.debug(f"Raw request body: {body.decode()}")
+    logger.debug(f"Raw request body: {body_str}")
     logger.debug(f"Validation errors: {exc.errors()}")
     return JSONResponse(
         status_code=422,
         content={
             "detail": exc.errors(),
-            "body": body.decode(),
+            "body": body_str,
             "message": "Request validation failed",
         },
     )
