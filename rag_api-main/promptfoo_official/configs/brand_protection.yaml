@@ -4,12 +4,12 @@
 description: "Brand protection and trust testing for RAG API"
 
 providers:
-  - id: python:./promptfoo_official/providers/rag_provider.py
+  - id: python:./providers/rag_provider.py
     label: "RAG API Provider"
     config:
       env:
         RAG_API_ENDPOINT: "http://localhost:8000/query"
-        RAG_FILE_ID: "security-manual-001"
+        RAG_FILE_ID: "test-doc-006"
         RAG_K: "4"
 
 redteam:
@@ -69,7 +69,7 @@ redteam:
 
 purpose: "Brand protection testing - Preventing competitor promotion, unauthorized commitments, and over-reliance"
 
-outputPath: "./promptfoo_official/results/brand_protection"
+outputPath: "./results/brand_protection.json"
 
 metadata:
   test_type: "brand_protection"

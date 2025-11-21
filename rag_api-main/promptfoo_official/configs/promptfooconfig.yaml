@@ -6,13 +6,13 @@ description: "Red team assessment for Docker RAG API with comprehensive security
 
 # Provider configuration - Points to our Python bridge
 providers:
-  - id: python:./promptfoo_official/providers/rag_provider.py
+  - id: python:./providers/rag_provider.py
     label: "RAG API Provider"
     config:
       # Environment variables for the provider
       env:
         RAG_API_ENDPOINT: "http://localhost:8000/query"
-        RAG_FILE_ID: "security-manual-001"
+        RAG_FILE_ID: "test-doc-006"
         RAG_K: "4"
 
 # Red team configuration using official Promptfoo plugins
@@ -103,7 +103,7 @@ redteam:
 purpose: "Comprehensive security assessment of RAG API including PII, harmful content, security vulnerabilities, and hallucination testing"
 
 # Output configuration
-outputPath: "./promptfoo_official/results/latest"
+outputPath: "./results/latest.json"
 
 # Sharing - disable for security
 sharing: false
