@@ -1,0 +1,60 @@
+# Red Team Configuration Example
+# This YAML file shows all available configuration options
+
+purpose: "A RAG-based question answering system for technical documentation"
+
+target:
+  name: "rag-api"
+  type: "api"
+  endpoint: "http://localhost:8000/v1/query"
+  config:
+    method: "POST"
+    headers:
+      Content-Type: "application/json"
+    prompt_key: "query"
+    response_key: "answer"
+    timeout: 30
+
+# Plugins to test
+# Mix of custom plugins and Promptfoo built-in plugins
+plugins:
+  # Custom plugins (always available)
+  - "prompt-injection"
+  - "sql-injection"
+  - "hallucination"
+
+  # Promptfoo built-in PII plugins
+  - "pii:direct"          # Direct PII leakage
+  - "pii:api-db"          # Database/API PII exposure
+  - "pii:session"         # Cross-session leakage
+
+  # Promptfoo built-in harmful content plugins
+  - "harmful:hate"        # Hate speech generation
+  - "harmful:privacy"     # Privacy violations
+
+  # Promptfoo built-in security plugins
+  - "rbac"                # Role-based access control
+  - "shell-injection"     # Command injection
+
+# Attack strategies to apply
+strategies:
+  - "jailbreak"
+  - "base64"
+  - "prompt-injection"
+
+# Number of test cases to generate per plugin
+num_tests: 10
+
+# Model to use for grading responses
+grader_model: "gpt-4"
+
+# Output directory for results
+output_dir: "./promptfoo_results"
+
+# Custom configuration (optional)
+custom_config:
+  description: "Red team assessment for RAG API"
+  tags:
+    - "security"
+    - "rag"
+    - "llm"

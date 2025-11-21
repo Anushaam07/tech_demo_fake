@@ -1,0 +1,47 @@
+# Promptfoo Built-in Security Plugins Configuration
+# Tests security vulnerabilities using official Promptfoo plugins
+
+purpose: "Security vulnerability testing for RAG application"
+
+target:
+  name: "docker-rag-api"
+  type: "custom"
+  config:
+    endpoint: "http://localhost:8000/query"
+    file_id: "security-manual-001"
+    k: 4
+
+# Promptfoo built-in security plugins
+plugins:
+  - id: "shell-injection"
+    config: {}
+
+  - id: "debug-access"
+    config: {}
+
+  - id: "rbac"
+    config:
+      roles:
+        - admin
+        - user
+        - guest
+        - developer
+
+# Attack strategies
+strategies:
+  - "base64"
+  - "rot13"
+  - "leetspeak"
+
+# Test parameters
+num_tests: 10
+
+# Output
+output_dir: "./security_vulnerability_results"
+
+# Metadata
+metadata:
+  test_type: "security_vulnerability"
+  security_frameworks:
+    - OWASP_LLM_TOP_10
+    - OWASP_API_TOP_10
