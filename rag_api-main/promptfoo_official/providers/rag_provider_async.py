@@ -23,7 +23,7 @@ class AsyncRAGProvider:
     def __init__(
         self,
         endpoint: str = "http://localhost:8000/query",
-        file_id: str = "security-manual-001",
+        file_id: str = "test-doc-006",
         k: int = 4,
         timeout: int = 30
     ):
@@ -44,7 +44,7 @@ class AsyncRAGProvider:
         """
         try:
             payload = {
-                "question": prompt,
+                "query": prompt,
                 "file_id": self.file_id,
                 "k": self.k
             }
@@ -56,10 +56,26 @@ class AsyncRAGProvider:
                     response.raise_for_status()
                     data = await response.json()
 
+                    # API returns list of [document, score] pairs
+                    if isinstance(data, list) and len(data) > 0:
+                        contents = []
+                        sources = []
+                        for item in data:
+                            if isinstance(item, list) and len(item) >= 1:
+                                doc = item[0]
+                                if isinstance(doc, dict):
+                                    contents.append(doc.get("page_content", ""))
+                                    sources.append(doc.get("metadata", {}))
+
+                        output = "\n\n".join(contents) if contents else "No results found"
+                    else:
+                        output = str(data)
+                        sources = []
+
                     return {
-                        "output": data.get("answer", ""),
+                        "output": output,
                         "metadata": {
-                            "sources": data.get("sources", []),
+                            "sources": sources,
                             "file_id": self.file_id,
                             "k": self.k,
                             "prompt": prompt
@@ -99,7 +115,7 @@ class AsyncRAGProvider:
 async def main_async():
     """Async main entry point"""
     endpoint = os.getenv("RAG_API_ENDPOINT", "http://localhost:8000/query")
-    file_id = os.getenv("RAG_FILE_ID", "security-manual-001")
+    file_id = os.getenv("RAG_FILE_ID", "test-doc-006")
     k = int(os.getenv("RAG_K", "4"))
     timeout = int(os.getenv("RAG_TIMEOUT", "30"))
 

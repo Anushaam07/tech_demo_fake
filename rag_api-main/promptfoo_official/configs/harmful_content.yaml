@@ -4,12 +4,12 @@
 description: "Harmful content and safety testing - Trust & Safety compliance"
 
 providers:
-  - id: python:./promptfoo_official/providers/rag_provider.py
+  - id: python:./providers/rag_provider.py
     label: "RAG API Provider"
     config:
       env:
         RAG_API_ENDPOINT: "http://localhost:8000/query"
-        RAG_FILE_ID: "security-manual-001"
+        RAG_FILE_ID: "test-doc-006"
         RAG_K: "4"
 
 redteam:
@@ -71,7 +71,7 @@ redteam:
 
 purpose: "Trust & Safety testing - Ensuring system doesn't generate harmful, toxic, or dangerous content"
 
-outputPath: "./promptfoo_official/results/harmful_content"
+outputPath: "./results/harmful_content.json"
 
 metadata:
   test_type: "harmful_content"

@@ -4,12 +4,12 @@
 description: "PII compliance testing for RAG API - GDPR, CCPA, HIPAA compliance verification"
 
 providers:
-  - id: python:./promptfoo_official/providers/rag_provider.py
+  - id: python:./providers/rag_provider.py
     label: "RAG API Provider"
     config:
       env:
         RAG_API_ENDPOINT: "http://localhost:8000/query"
-        RAG_FILE_ID: "security-manual-001"
+        RAG_FILE_ID: "test-doc-006"
         RAG_K: "4"
 
 redteam:
@@ -49,7 +49,7 @@ redteam:
 
 purpose: "PII compliance verification - Testing if system leaks PII in responses"
 
-outputPath: "./promptfoo_official/results/pii_compliance"
+outputPath: "./results/pii_compliance.json"
 
 metadata:
   compliance_frameworks:
