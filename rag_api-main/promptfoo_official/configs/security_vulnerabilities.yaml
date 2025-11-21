@@ -1,0 +1,83 @@
+# Official Promptfoo Security Vulnerability Testing Configuration
+# Focuses on OWASP vulnerabilities and security testing
+
+description: "Security vulnerability testing - OWASP LLM Top 10 and API Security"
+
+providers:
+  - id: python:./promptfoo_official/providers/rag_provider.py
+    label: "RAG API Provider"
+    config:
+      env:
+        RAG_API_ENDPOINT: "http://localhost:8000/query"
+        RAG_FILE_ID: "security-manual-001"
+        RAG_K: "4"
+
+redteam:
+  numTests: 15
+
+  plugins:
+    # Prompt Injection (OWASP LLM01)
+    - id: prompt-injection
+      numTests: 25
+      config:
+        # Test various injection techniques
+        techniques:
+          - context-switching
+          - delimiter-injection
+          - role-manipulation
+
+    # Shell Injection
+    - id: shell-injection
+      numTests: 20
+
+    # SQL Injection (OWASP API8)
+    - id: sql-injection
+      numTests: 20
+
+    # Debug/System Access
+    - id: debug-access
+      numTests: 15
+
+    # RBAC Testing (OWASP API1)
+    - id: rbac
+      numTests: 20
+      config:
+        roles:
+          - admin
+          - user
+          - guest
+          - developer
+          - auditor
+        permissions:
+          - read
+          - write
+          - delete
+          - execute
+
+    # Cross-Site Scripting attempts
+    - id: harmful:specialized-advice
+      numTests: 10
+
+  strategies:
+    - jailbreak
+    - prompt-injection
+    - base64
+    - rot13
+    - multilingual
+
+purpose: "OWASP security vulnerability testing - Identifying injection attacks, access control issues, and security misconfigurations"
+
+outputPath: "./promptfoo_official/results/security_vulns"
+
+metadata:
+  compliance_frameworks:
+    - OWASP_LLM_TOP_10
+    - OWASP_API_TOP_10
+  test_type: "security_vulnerabilities"
+  severity_levels:
+    - critical
+    - high
+    - medium
+    - low
+
+sharing: false

@@ -1,0 +1,61 @@
+# Official Promptfoo PII Compliance Testing Configuration
+# Focuses exclusively on PII detection and compliance (GDPR, CCPA, HIPAA)
+
+description: "PII compliance testing for RAG API - GDPR, CCPA, HIPAA compliance verification"
+
+providers:
+  - id: python:./promptfoo_official/providers/rag_provider.py
+    label: "RAG API Provider"
+    config:
+      env:
+        RAG_API_ENDPOINT: "http://localhost:8000/query"
+        RAG_FILE_ID: "security-manual-001"
+        RAG_K: "4"
+
+redteam:
+  numTests: 20
+
+  plugins:
+    # Comprehensive PII testing
+    - id: pii
+      numTests: 30
+      config:
+        piiTypes:
+          # Financial PII
+          - credit-card
+          - bank-account
+          - routing-number
+
+          # Government IDs
+          - ssn
+          - passport
+          - driver-license
+
+          # Personal Information
+          - email
+          - phone
+          - name
+          - address
+          - date-of-birth
+
+          # Health Information (HIPAA)
+          - medical-record-number
+          - health-insurance
+
+  strategies:
+    - jailbreak
+    - prompt-injection
+    - base64
+
+purpose: "PII compliance verification - Testing if system leaks PII in responses"
+
+outputPath: "./promptfoo_official/results/pii_compliance"
+
+metadata:
+  compliance_frameworks:
+    - GDPR
+    - CCPA
+    - HIPAA
+  test_type: "pii_compliance"
+
+sharing: false

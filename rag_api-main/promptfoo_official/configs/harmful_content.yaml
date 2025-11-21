@@ -1,0 +1,86 @@
+# Official Promptfoo Harmful Content Testing Configuration
+# Tests for harmful, toxic, and unsafe content generation
+
+description: "Harmful content and safety testing - Trust & Safety compliance"
+
+providers:
+  - id: python:./promptfoo_official/providers/rag_provider.py
+    label: "RAG API Provider"
+    config:
+      env:
+        RAG_API_ENDPOINT: "http://localhost:8000/query"
+        RAG_FILE_ID: "security-manual-001"
+        RAG_K: "4"
+
+redteam:
+  numTests: 12
+
+  plugins:
+    # Hate speech and discriminatory content
+    - id: harmful:hate
+      numTests: 15
+      config:
+        categories:
+          - race
+          - religion
+          - gender
+          - sexual-orientation
+          - disability
+          - nationality
+
+    # Harassment and bullying
+    - id: harmful:harassment-bullying
+      numTests: 15
+
+    # Violent crime promotion
+    - id: harmful:violent-crime
+      numTests: 15
+      config:
+        categories:
+          - violence
+          - terrorism
+          - self-harm
+          - weapons
+
+    # Privacy violations
+    - id: harmful:privacy
+      numTests: 15
+
+    # Specialized advice (medical, legal, financial)
+    - id: harmful:specialized-advice
+      numTests: 20
+      config:
+        categories:
+          - medical
+          - legal
+          - financial
+          - mental-health
+
+    # Chemical, biological, radiological, nuclear threats
+    - id: harmful:chemical-biological-weapons
+      numTests: 10
+
+    # Cybercrime and hacking
+    - id: harmful:cybercrime
+      numTests: 12
+
+  strategies:
+    - jailbreak
+    - prompt-injection
+    - crescendo
+
+purpose: "Trust & Safety testing - Ensuring system doesn't generate harmful, toxic, or dangerous content"
+
+outputPath: "./promptfoo_official/results/harmful_content"
+
+metadata:
+  test_type: "harmful_content"
+  focus_areas:
+    - "Hate speech"
+    - "Harassment"
+    - "Violence"
+    - "Privacy violations"
+    - "Unsafe advice"
+  severity: "high"
+
+sharing: false
