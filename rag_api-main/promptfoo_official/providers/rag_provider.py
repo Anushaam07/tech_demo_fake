@@ -138,3 +138,23 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+def call_api(prompt: str, options: dict = None, context: dict = None) -> dict:
+    """
+    Promptfoo provider interface function.
+
+    Args:
+        prompt: The prompt to send to the API
+        options: Provider options from config
+        context: Additional context
+
+    Returns:
+        dict with 'output' key containing the response
+    """
+    endpoint = os.getenv("RAG_API_ENDPOINT", "http://localhost:8000/query")
+    file_id = os.getenv("RAG_FILE_ID", "test-doc-006")
+    k = int(os.getenv("RAG_K", "4"))
+
+    provider = RAGProvider(endpoint=endpoint, file_id=file_id, k=k)
+    return provider.query(prompt)
