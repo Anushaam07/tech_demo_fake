@@ -392,12 +392,12 @@ class PluginManager:
             return False
 
     @classmethod
-    def get_plugin(cls, plugin_type: PluginType, config: Optional[PluginConfig] = None) -> BasePlugin:
+    def get_plugin(cls, plugin_type, config: Optional[PluginConfig] = None) -> BasePlugin:
         """
         Get a plugin instance by type.
 
         Args:
-            plugin_type: Type of plugin to instantiate
+            plugin_type: Type of plugin to instantiate (PluginType enum or string)
             config: Optional plugin configuration
 
         Returns:
@@ -406,16 +406,19 @@ class PluginManager:
         Raises:
             ValueError: If plugin type is not registered
         """
-        plugin_class = cls.PLUGIN_REGISTRY.get(plugin_type)
+        # Handle both PluginType enums and string plugin names
+        plugin_key = plugin_type
+        plugin_class = cls.PLUGIN_REGISTRY.get(plugin_key)
+
         if not plugin_class:
-            raise ValueError(f"Plugin type {plugin_type} not found in registry")
+            raise ValueError(f"Plugin type {plugin_type} not found in registry. Available plugins: {list(cls.PLUGIN_REGISTRY.keys())}")
 
         return plugin_class(config)
 
     @classmethod
     def generate_tests_for_plugins(
         cls,
-        plugin_types: List[PluginType],
+        plugin_types: List,
         num_tests_per_plugin: int,
         purpose: str,
         **kwargs
@@ -424,7 +427,7 @@ class PluginManager:
         Generate test cases for multiple plugins.
 
         Args:
-            plugin_types: List of plugin types to use
+            plugin_types: List of plugin types to use (PluginType enums or strings)
             num_tests_per_plugin: Number of tests to generate per plugin
             purpose: System purpose description
             **kwargs: Additional parameters
@@ -437,14 +440,27 @@ class PluginManager:
         for plugin_type in plugin_types:
             plugin = cls.get_plugin(plugin_type)
             tests = plugin.generate_test_cases(num_tests_per_plugin, purpose, **kwargs)
-            all_tests[plugin_type.value] = tests
+
+            # Get plugin name - handle both enum and string types
+            if hasattr(plugin_type, 'value'):
+                plugin_name = plugin_type.value
+            else:
+                plugin_name = str(plugin_type)
+
+            all_tests[plugin_name] = tests
 
         return all_tests
 
     @classmethod
     def list_available_plugins(cls) -> List[str]:
         """Get list of available plugin names."""
-        return [plugin.value for plugin in cls.PLUGIN_REGISTRY.keys()]
+        plugin_names = []
+        for key in cls.PLUGIN_REGISTRY.keys():
+            if hasattr(key, 'value'):
+                plugin_names.append(key.value)
+            else:
+                plugin_names.append(str(key))
+        return plugin_names
 
     @classmethod
     def get_plugins_by_category(cls, category: PluginCategory) -> List[PluginType]:

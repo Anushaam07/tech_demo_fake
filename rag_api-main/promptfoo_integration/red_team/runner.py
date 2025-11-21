@@ -80,10 +80,16 @@ class RedTeamRunner:
         print(f"Generating test cases for {len(self.config.plugins)} plugins...")
 
         # Convert plugin configs to plugin types
+        # Built-in plugins (like "pii:direct") are strings, custom plugins are PluginType enums
         plugin_types = []
         for plugin in self.config.plugins:
             if isinstance(plugin, str):
-                plugin_types.append(PluginType(plugin))
+                # Check if it's a valid PluginType enum value
+                try:
+                    plugin_types.append(PluginType(plugin))
+                except ValueError:
+                    # It's a built-in plugin registered with string key (e.g., "pii:direct")
+                    plugin_types.append(plugin)
             elif hasattr(plugin, 'value'):
                 plugin_types.append(plugin)
             else:
