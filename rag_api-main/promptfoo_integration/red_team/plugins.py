@@ -305,12 +305,91 @@ class PluginManager:
 
     # Registry of available plugins
     PLUGIN_REGISTRY = {
+        # Core custom plugins (always loaded)
         PluginType.SQL_INJECTION: SQLInjectionPlugin,
         PluginType.PROMPT_INJECTION: PromptInjectionPlugin,
         PluginType.HARMFUL_CONTENT: HarmfulContentPlugin,
         PluginType.PII: PIIPlugin,
         PluginType.HALLUCINATION: HallucinationPlugin,
     }
+
+    @classmethod
+    def register_promptfoo_builtin_plugins(cls):
+        """
+        Register Promptfoo's official built-in plugins.
+
+        These plugins follow Promptfoo's official specifications from:
+        https://www.promptfoo.dev/docs/red-team/plugins
+
+        Plugins registered:
+        - PII: pii:direct, pii:api-db, pii:session, pii:social
+        - Harmful: harmful:hate, harmful:harassment-bullying, harmful:violent-crime,
+                   harmful:privacy, harmful:specialized-advice
+        - Security: shell-injection, debug-access, rbac
+        - Brand: competitors, contracts, excessive-agency, overreliance
+
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            from promptfoo_integration.red_team.plugins_builtin import (
+                # PII plugins
+                PIIDirectPlugin,
+                PIIAPIDBPlugin,
+                PIISessionPlugin,
+                PIISocialPlugin,
+                # Harmful content plugins
+                HarmfulHatePlugin,
+                HarmfulHarassmentPlugin,
+                HarmfulViolentCrimePlugin,
+                HarmfulPrivacyPlugin,
+                HarmfulSpecializedAdvicePlugin,
+                # Security plugins
+                ShellInjectionPlugin,
+                DebugAccessPlugin,
+                RBACPlugin,
+                # Brand & Trust plugins
+                CompetitorsPlugin,
+                ContractsPlugin,
+                ExcessiveAgencyPlugin,
+                OverreliancePlugin,
+            )
+
+            # Register with Promptfoo plugin naming convention
+            builtin_plugins = {
+                # PII plugins
+                "pii:direct": PIIDirectPlugin,
+                "pii:api-db": PIIAPIDBPlugin,
+                "pii:session": PIISessionPlugin,
+                "pii:social": PIISocialPlugin,
+
+                # Harmful content plugins
+                "harmful:hate": HarmfulHatePlugin,
+                "harmful:harassment-bullying": HarmfulHarassmentPlugin,
+                "harmful:violent-crime": HarmfulViolentCrimePlugin,
+                "harmful:privacy": HarmfulPrivacyPlugin,
+                "harmful:specialized-advice": HarmfulSpecializedAdvicePlugin,
+
+                # Security plugins
+                "shell-injection": ShellInjectionPlugin,
+                "debug-access": DebugAccessPlugin,
+                "rbac": RBACPlugin,
+
+                # Brand & Trust plugins
+                "competitors": CompetitorsPlugin,
+                "contracts": ContractsPlugin,
+                "excessive-agency": ExcessiveAgencyPlugin,
+                "overreliance": OverreliancePlugin,
+            }
+
+            # Register all built-in plugins (use string keys for Promptfoo compatibility)
+            for name, plugin_class in builtin_plugins.items():
+                cls.PLUGIN_REGISTRY[name] = plugin_class
+
+            return True
+        except ImportError as e:
+            print(f"Warning: Could not load Promptfoo built-in plugins: {e}")
+            return False
 
     @classmethod
     def get_plugin(cls, plugin_type: PluginType, config: Optional[PluginConfig] = None) -> BasePlugin:
