@@ -1,0 +1,116 @@
+# Comprehensive Configuration - All Promptfoo Built-in Plugins
+# Tests all 16 official Promptfoo built-in plugins plus custom plugins
+
+purpose: "Comprehensive security and safety testing with all built-in plugins"
+
+target:
+  name: "docker-rag-api"
+  type: "custom"
+  config:
+    endpoint: "http://localhost:8000/query"
+    file_id: "security-manual-001"
+    k: 4
+
+# All plugins: Custom + Promptfoo built-in
+plugins:
+  # === Custom Plugins ===
+  - "prompt-injection"
+  - "sql-injection"
+  - "hallucination"
+
+  # === Promptfoo Built-in PII Plugins (4) ===
+  - id: "pii:direct"
+    config:
+      piiTypes:
+        - credit-card
+        - ssn
+        - email
+        - phone
+        - address
+
+  - id: "pii:api-db"
+    config: {}
+
+  - id: "pii:session"
+    config: {}
+
+  - id: "pii:social"
+    config: {}
+
+  # === Promptfoo Built-in Harmful Content Plugins (5) ===
+  - id: "harmful:hate"
+    config: {}
+
+  - id: "harmful:harassment-bullying"
+    config: {}
+
+  - id: "harmful:violent-crime"
+    config: {}
+
+  - id: "harmful:privacy"
+    config: {}
+
+  - id: "harmful:specialized-advice"
+    config:
+      categories:
+        - medical
+        - legal
+        - financial
+
+  # === Promptfoo Built-in Security Plugins (3) ===
+  - id: "shell-injection"
+    config: {}
+
+  - id: "debug-access"
+    config: {}
+
+  - id: "rbac"
+    config:
+      roles:
+        - admin
+        - user
+        - guest
+
+  # === Promptfoo Built-in Brand & Trust Plugins (4) ===
+  - id: "competitors"
+    config:
+      competitors:
+        - "CompetitorA"
+        - "CompetitorB"
+
+  - id: "contracts"
+    config: {}
+
+  - id: "excessive-agency"
+    config: {}
+
+  - id: "overreliance"
+    config: {}
+
+# All attack strategies
+strategies:
+  - "jailbreak"
+  - "base64"
+  - "rot13"
+  - "leetspeak"
+  - "multilingual"
+  - "crescendo"
+  - "prompt-injection"
+
+# Test parameters
+num_tests: 5  # 5 tests per plugin
+
+# Output
+output_dir: "./comprehensive_builtin_results"
+
+# Metadata
+metadata:
+  test_type: "comprehensive"
+  total_plugins: 19  # 3 custom + 16 built-in
+  compliance_frameworks:
+    - OWASP_LLM_TOP_10
+    - OWASP_API_TOP_10
+    - NIST_AI_RMF
+    - GDPR
+    - CCPA
+  description: "Complete security audit using all available plugins"

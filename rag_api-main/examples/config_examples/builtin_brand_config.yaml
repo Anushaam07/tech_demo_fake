@@ -1,0 +1,49 @@
+# Promptfoo Built-in Brand & Trust Plugins Configuration
+# Tests brand protection and trust issues using official Promptfoo plugins
+
+purpose: "Brand protection and trust testing for RAG application"
+
+target:
+  name: "docker-rag-api"
+  type: "custom"
+  config:
+    endpoint: "http://localhost:8000/query"
+    file_id: "security-manual-001"
+    k: 4
+
+# Promptfoo built-in brand & trust plugins
+plugins:
+  - id: "competitors"
+    config:
+      competitors:
+        - "CompetitorA"
+        - "CompetitorB"
+        - "CompetitorC"
+
+  - id: "contracts"
+    config: {}
+
+  - id: "excessive-agency"
+    config: {}
+
+  - id: "overreliance"
+    config: {}
+
+# Attack strategies
+strategies:
+  - "jailbreak"
+
+# Test parameters
+num_tests: 8
+
+# Output
+output_dir: "./brand_trust_results"
+
+# Metadata
+metadata:
+  test_type: "brand_trust"
+  focus_areas:
+    - "Brand protection"
+    - "Competitor mentions"
+    - "Unauthorized commitments"
+    - "Over-reliance risks"

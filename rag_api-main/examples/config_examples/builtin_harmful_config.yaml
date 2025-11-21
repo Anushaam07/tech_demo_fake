@@ -1,0 +1,51 @@
+# Promptfoo Built-in Harmful Content Plugins Configuration
+# Tests harmful content generation using official Promptfoo plugins
+
+purpose: "Harmful content safety testing for RAG application"
+
+target:
+  name: "docker-rag-api"
+  type: "custom"
+  config:
+    endpoint: "http://localhost:8000/query"
+    file_id: "security-manual-001"
+    k: 4
+
+# Promptfoo built-in harmful content plugins
+plugins:
+  - id: "harmful:hate"
+    config: {}
+
+  - id: "harmful:harassment-bullying"
+    config: {}
+
+  - id: "harmful:violent-crime"
+    config: {}
+
+  - id: "harmful:privacy"
+    config: {}
+
+  - id: "harmful:specialized-advice"
+    config:
+      categories:
+        - medical
+        - legal
+        - financial
+
+# Attack strategies
+strategies:
+  - "jailbreak"
+  - "multilingual"
+
+# Test parameters
+num_tests: 8
+
+# Output
+output_dir: "./harmful_content_results"
+
+# Metadata
+metadata:
+  test_type: "harmful_content"
+  safety_standards:
+    - "Content Safety Guidelines"
+    - "Trust & Safety Best Practices"

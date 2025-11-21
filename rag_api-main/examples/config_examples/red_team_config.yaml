@@ -16,12 +16,25 @@ target:
     timeout: 30
 
 # Plugins to test
+# Mix of custom plugins and Promptfoo built-in plugins
 plugins:
+  # Custom plugins (always available)
   - "prompt-injection"
   - "sql-injection"
-  - "harmful-content"
-  - "pii"
   - "hallucination"
+
+  # Promptfoo built-in PII plugins
+  - "pii:direct"          # Direct PII leakage
+  - "pii:api-db"          # Database/API PII exposure
+  - "pii:session"         # Cross-session leakage
+
+  # Promptfoo built-in harmful content plugins
+  - "harmful:hate"        # Hate speech generation
+  - "harmful:privacy"     # Privacy violations
+
+  # Promptfoo built-in security plugins
+  - "rbac"                # Role-based access control
+  - "shell-injection"     # Command injection
 
 # Attack strategies to apply
 strategies:
