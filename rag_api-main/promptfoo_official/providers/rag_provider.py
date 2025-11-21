@@ -68,11 +68,29 @@ class RAGProvider:
 
             data = response.json()
 
+            # API returns list of [document, score] pairs
+            # Extract page_content from results
+            if isinstance(data, list) and len(data) > 0:
+                # Combine all page_content from results
+                contents = []
+                sources = []
+                for item in data:
+                    if isinstance(item, list) and len(item) >= 1:
+                        doc = item[0]
+                        if isinstance(doc, dict):
+                            contents.append(doc.get("page_content", ""))
+                            sources.append(doc.get("metadata", {}))
+
+                output = "\n\n".join(contents) if contents else "No results found"
+            else:
+                output = str(data)
+                sources = []
+
             # Return in format expected by Promptfoo
             return {
-                "output": data.get("answer", ""),
+                "output": output,
                 "metadata": {
-                    "sources": data.get("sources", []),
+                    "sources": sources,
                     "file_id": self.file_id,
                     "k": self.k
                 }

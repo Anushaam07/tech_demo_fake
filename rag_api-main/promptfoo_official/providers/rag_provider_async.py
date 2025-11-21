@@ -56,10 +56,26 @@ class AsyncRAGProvider:
                     response.raise_for_status()
                     data = await response.json()
 
+                    # API returns list of [document, score] pairs
+                    if isinstance(data, list) and len(data) > 0:
+                        contents = []
+                        sources = []
+                        for item in data:
+                            if isinstance(item, list) and len(item) >= 1:
+                                doc = item[0]
+                                if isinstance(doc, dict):
+                                    contents.append(doc.get("page_content", ""))
+                                    sources.append(doc.get("metadata", {}))
+
+                        output = "\n\n".join(contents) if contents else "No results found"
+                    else:
+                        output = str(data)
+                        sources = []
+
                     return {
-                        "output": data.get("answer", ""),
+                        "output": output,
                         "metadata": {
-                            "sources": data.get("sources", []),
+                            "sources": sources,
                             "file_id": self.file_id,
                             "k": self.k,
                             "prompt": prompt
