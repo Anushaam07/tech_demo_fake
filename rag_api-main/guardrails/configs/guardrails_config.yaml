@@ -1,0 +1,95 @@
+# Guardrails Configuration
+# Runtime protection for LLM applications
+
+# Enable/disable all guardrails
+enabled: true
+
+# ============================================
+# INPUT GUARDRAILS (Filter user inputs)
+# ============================================
+
+# Detect and block prompt injection attempts
+prompt_injection: true
+
+# Detect jailbreak attempts (DAN mode, bypass safety, etc.)
+jailbreak_detection: true
+
+# Detect SQL injection in inputs
+sql_injection: true
+
+# Detect code injection attempts
+code_injection: true
+
+# Detect PII in user inputs (optional - may block legitimate queries)
+pii_detection: true
+
+# Detect toxic/harmful content in inputs
+toxic_content: true
+
+# ============================================
+# OUTPUT GUARDRAILS (Filter LLM outputs)
+# ============================================
+
+# Detect and redact PII in outputs
+pii_detection_output: true
+
+# Block harmful content in outputs
+toxic_content_output: true
+
+# Block confidential information in outputs
+confidential_info: true
+
+# Block competitor mentions in outputs
+competitor_mention: false
+
+# ============================================
+# ACTION CONFIGURATION
+# ============================================
+
+# Action when guardrail triggers: block, warn, log, redact
+action_on_trigger: block
+
+# Log all guardrail events
+log_events: true
+
+# Log file path
+log_path: "./guardrails/logs/guardrails.log"
+
+# ============================================
+# CUSTOM PATTERNS
+# ============================================
+
+# List of competitors to detect (if competitor_mention is enabled)
+competitors:
+  - "Competitor AI Corp"
+  - "RivalLLM Inc"
+  - "AlternativeRAG"
+
+# Custom confidential information patterns (regex)
+confidential_patterns:
+  - "internal\\s+use\\s+only"
+  - "confidential"
+  - "secret\\s+key"
+  - "password\\s*[:=]"
+  - "api[_-]?key\\s*[:=]"
+
+# ============================================
+# PII TYPES TO DETECT
+# ============================================
+pii_types:
+  - credit_card
+  - ssn
+  - email
+  - phone
+  - ip_address
+  - api_key
+
+# ============================================
+# SAFE RESPONSES (when output is blocked)
+# ============================================
+safe_responses:
+  pii_detection: "I cannot share personal information. Please ask about something else."
+  toxic_content: "I cannot provide that type of content."
+  competitor_mention: "I cannot provide information about competitors."
+  confidential_info: "I cannot share confidential information."
+  default: "I cannot provide that information."
