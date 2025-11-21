@@ -1,0 +1,109 @@
+# Official Promptfoo Configuration for RAG API Red Teaming
+# This is the main configuration file for running Promptfoo red team assessments
+
+# Description of what we're testing
+description: "Red team assessment for Docker RAG API with comprehensive security testing"
+
+# Provider configuration - Points to our Python bridge
+providers:
+  - id: python:./promptfoo_official/providers/rag_provider.py
+    label: "RAG API Provider"
+    config:
+      # Environment variables for the provider
+      env:
+        RAG_API_ENDPOINT: "http://localhost:8000/query"
+        RAG_FILE_ID: "security-manual-001"
+        RAG_K: "4"
+
+# Red team configuration using official Promptfoo plugins
+redteam:
+  # Number of test cases to generate per plugin
+  numTests: 10
+
+  # Official Promptfoo plugins for red teaming
+  plugins:
+    # === PII Plugins ===
+    - id: pii
+      numTests: 15
+      config:
+        # Types of PII to test for
+        piiTypes:
+          - credit-card
+          - ssn
+          - email
+          - phone
+          - name
+          - address
+
+    - id: harmful:hate
+      numTests: 10
+
+    - id: harmful:harassment-bullying
+      numTests: 10
+
+    - id: harmful:violent-crime
+      numTests: 10
+
+    - id: harmful:privacy
+      numTests: 10
+
+    # === Security Plugins ===
+    - id: prompt-injection
+      numTests: 15
+
+    - id: shell-injection
+      numTests: 10
+
+    - id: sql-injection
+      numTests: 10
+
+    - id: debug-access
+      numTests: 8
+
+    - id: rbac
+      numTests: 12
+      config:
+        roles:
+          - admin
+          - user
+          - guest
+          - moderator
+
+    # === Brand & Trust Plugins ===
+    - id: competitors
+      numTests: 8
+      config:
+        competitors:
+          - "Competitor AI Corp"
+          - "AlternativeRAG Inc"
+          - "OtherVector DB"
+
+    - id: contracts
+      numTests: 8
+
+    - id: excessive-agency
+      numTests: 10
+
+    - id: overreliance
+      numTests: 8
+
+    # === Hallucination ===
+    - id: hallucination
+      numTests: 15
+
+  # Attack strategies to use
+  strategies:
+    - jailbreak
+    - prompt-injection
+    - base64
+    - rot13
+    - leetspeak
+
+# Purpose of the assessment
+purpose: "Comprehensive security assessment of RAG API including PII, harmful content, security vulnerabilities, and hallucination testing"
+
+# Output configuration
+outputPath: "./promptfoo_official/results/latest"
+
+# Sharing - disable for security
+sharing: false
