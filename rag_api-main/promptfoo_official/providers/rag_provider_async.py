@@ -23,7 +23,7 @@ class AsyncRAGProvider:
     def __init__(
         self,
         endpoint: str = "http://localhost:8000/query",
-        file_id: str = "security-manual-001",
+        file_id: str = "test-doc-006",
         k: int = 4,
         timeout: int = 30
     ):
@@ -44,7 +44,7 @@ class AsyncRAGProvider:
         """
         try:
             payload = {
-                "question": prompt,
+                "query": prompt,
                 "file_id": self.file_id,
                 "k": self.k
             }
@@ -99,7 +99,7 @@ class AsyncRAGProvider:
 async def main_async():
     """Async main entry point"""
     endpoint = os.getenv("RAG_API_ENDPOINT", "http://localhost:8000/query")
-    file_id = os.getenv("RAG_FILE_ID", "security-manual-001")
+    file_id = os.getenv("RAG_FILE_ID", "test-doc-006")
     k = int(os.getenv("RAG_K", "4"))
     timeout = int(os.getenv("RAG_TIMEOUT", "30"))
 

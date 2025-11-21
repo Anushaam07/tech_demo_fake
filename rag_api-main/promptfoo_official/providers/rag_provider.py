@@ -27,7 +27,7 @@ class RAGProvider:
     def __init__(
         self,
         endpoint: str = "http://localhost:8000/query",
-        file_id: str = "security-manual-001",
+        file_id: str = "test-doc-006",
         k: int = 4
     ):
         """
@@ -54,7 +54,7 @@ class RAGProvider:
         """
         try:
             payload = {
-                "question": prompt,
+                "query": prompt,
                 "file_id": self.file_id,
                 "k": self.k
             }
@@ -98,7 +98,7 @@ def main():
     """
     # Get configuration from environment or use defaults
     endpoint = os.getenv("RAG_API_ENDPOINT", "http://localhost:8000/query")
-    file_id = os.getenv("RAG_FILE_ID", "security-manual-001")
+    file_id = os.getenv("RAG_FILE_ID", "test-doc-006")
     k = int(os.getenv("RAG_K", "4"))
 
     # Get prompt from command line argument
