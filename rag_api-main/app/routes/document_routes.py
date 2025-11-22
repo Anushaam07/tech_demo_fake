@@ -27,9 +27,11 @@ from app.constants import ERROR_MESSAGES
 from app.models import (
     StoreDocument,
     QueryRequestBody,
+    QueryResponse,
     DocumentResponse,
     QueryMultipleBody,
 )
+from app.services.llm_service import get_llm_service, is_llm_enabled
 from app.services.vector_store.async_pg_vector import AsyncPgVector
 from app.utils.document_loader import (
     get_loader,
@@ -263,6 +265,16 @@ async def query_embeddings_by_file_id(
     body: QueryRequestBody,
     request: Request,
 ):
+    """
+    Query embeddings by file ID with optional LLM-generated response.
+
+    Args:
+        body: Query request containing query, file_id, k, and optional use_llm flag
+
+    Returns:
+        If use_llm is True: QueryResponse with LLM-generated answer
+        If use_llm is False: List of raw document chunks (backward compatible)
+    """
     if not hasattr(request.state, "user"):
         user_authorized = body.entity_id if body.entity_id else "public"
     else:
@@ -271,6 +283,10 @@ async def query_embeddings_by_file_id(
         )
 
     authorized_documents = []
+
+    # Determine if LLM should be used
+    # Priority: request body > environment variable > default (False)
+    use_llm = body.use_llm if body.use_llm is not None else is_llm_enabled()
 
     try:
         embedding = get_cached_query_embedding(body.query)
@@ -288,6 +304,13 @@ async def query_embeddings_by_file_id(
             )
 
         if not documents:
+            if use_llm:
+                return QueryResponse(
+                    answer="No relevant documents found.",
+                    sources=[],
+                    llm_generated=False,
+                    raw_documents=[]
+                )
             return authorized_documents
 
         document, score = documents[0]
@@ -316,6 +339,28 @@ async def query_embeddings_by_file_id(
                     f"Unauthorized access attempt by user {user_authorized} to a document with user_id {doc_user_id}"
                 )
 
+        # If LLM is enabled, generate intelligent response
+        if use_llm and authorized_documents:
+            llm_service = get_llm_service()
+            result = llm_service.generate_from_documents(body.query, authorized_documents)
+
+            # Convert documents to serializable format for raw_documents
+            raw_docs = []
+            for doc, doc_score in authorized_documents:
+                raw_docs.append({
+                    "page_content": doc.page_content,
+                    "metadata": doc.metadata,
+                    "score": doc_score
+                })
+
+            return QueryResponse(
+                answer=result["answer"],
+                sources=result["sources"],
+                llm_generated=result["llm_generated"],
+                raw_documents=raw_docs
+            )
+
+        # Return raw documents for backward compatibility
         return authorized_documents
 
     except HTTPException as http_exc:

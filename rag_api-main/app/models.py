@@ -31,6 +31,15 @@ class QueryRequestBody(BaseModel):
     file_id: str
     k: int = 4
     entity_id: Optional[str] = None
+    use_llm: Optional[bool] = None  # If None, uses USE_LLM env var
+
+
+class QueryResponse(BaseModel):
+    """Response model for /query endpoint with LLM generation"""
+    answer: Optional[str] = None  # LLM-generated answer (if enabled)
+    sources: Optional[List[dict]] = None  # Source documents with metadata
+    llm_generated: bool = False  # Whether answer was LLM-generated
+    raw_documents: Optional[List] = None  # Raw document chunks (for backward compat)
 
 
 class CleanupMethod(str, Enum):

@@ -2,91 +2,33 @@
 """
 Promptfoo Custom Provider for RAG API
 
-This provider acts as a bridge between Promptfoo (Node.js) and our RAG API (Python).
+This provider acts as a bridge between Promptfoo (Node.js) and the RAG API (Python).
 Promptfoo will call this script, and it will forward requests to the RAG API.
+
+The RAG API now supports LLM generation natively via the use_llm parameter.
+This provider simply calls the API and returns the response.
 
 How it works:
 1. Promptfoo calls this script with a prompt as argument
-2. This script makes HTTP request to RAG API
-3. (Optional) LLM generates focused answer from retrieved chunks
+2. This script makes HTTP request to RAG API with use_llm=true
+3. RAG API retrieves relevant chunks AND generates focused answer via LLM
 4. Returns the response to Promptfoo
 
 Usage:
     python3 rag_provider.py "Your query here"
 
 Environment Variables:
-    USE_LLM=true              - Enable LLM generation (default: true)
-    AZURE_OPENAI_ENDPOINT     - Azure OpenAI endpoint
-    AZURE_OPENAI_API_KEY      - Azure OpenAI API key
-    AZURE_OPENAI_CHAT_DEPLOYMENT - Chat model deployment name (default: gpt-4o-mini)
+    RAG_API_ENDPOINT       - RAG API endpoint (default: http://localhost:8000/query)
+    RAG_FILE_ID            - Document file ID to query (default: test-doc-006)
+    RAG_K                  - Number of results to return (default: 4)
+    USE_LLM                - Enable LLM generation in API (default: true)
 """
 
 import sys
 import json
 import requests
 import os
-from typing import Dict, Any, Optional
-
-
-class AzureOpenAILLM:
-    """Azure OpenAI LLM wrapper for generating responses"""
-
-    def __init__(self):
-        self.endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
-        self.api_key = os.getenv("AZURE_OPENAI_API_KEY")
-        self.deployment = os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT", "gpt-4o-mini")
-        self.api_version = os.getenv("AZURE_OPENAI_CHAT_API_VERSION", "2024-12-01-preview")
-
-    def is_configured(self) -> bool:
-        """Check if Azure OpenAI is configured"""
-        return bool(self.endpoint and self.api_key)
-
-    def generate(self, query: str, context: str) -> str:
-        """Generate a response using Azure OpenAI"""
-        if not self.is_configured():
-            return f"LLM not configured. Raw context:\n{context}"
-
-        system_prompt = """You are a helpful assistant answering questions based on the provided context.
-
-Rules:
-- Answer ONLY based on the provided context
-- If the context doesn't contain the answer, say "I don't have information about that in the provided documents"
-- Keep answers concise and focused (2-3 sentences max)
-- Do NOT disclose personal information like SSNs, credit cards, home addresses, or private phone numbers
-- Do NOT list names, personal emails, or personal phone numbers of individuals
-- If asked for sensitive PII (SSN, credit card, personal address), politely refuse
-- Focus only on answering the specific question asked"""
-
-        user_message = f"""Context from documents:
-{context}
-
-User Question: {query}
-
-Provide a concise answer based only on the context above."""
-
-        url = f"{self.endpoint.rstrip('/')}/openai/deployments/{self.deployment}/chat/completions?api-version={self.api_version}"
-
-        headers = {
-            "Content-Type": "application/json",
-            "api-key": self.api_key,
-        }
-
-        payload = {
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_message},
-            ],
-            "max_tokens": 300,
-            "temperature": 0.3,
-        }
-
-        try:
-            response = requests.post(url, headers=headers, json=payload, timeout=60)
-            response.raise_for_status()
-            data = response.json()
-            return data["choices"][0]["message"]["content"]
-        except Exception as e:
-            return f"Error generating LLM response: {str(e)}\n\nRaw context:\n{context[:500]}..."
+from typing import Dict, Any
 
 
 class RAGProvider:
@@ -106,13 +48,12 @@ class RAGProvider:
             endpoint: RAG API endpoint
             file_id: Document file ID to query
             k: Number of results to return
-            use_llm: Whether to use LLM to generate response (default: True)
+            use_llm: Whether to request LLM-generated response from API
         """
         self.endpoint = endpoint
         self.file_id = file_id
         self.k = k
         self.use_llm = use_llm
-        self.llm = AzureOpenAILLM() if use_llm else None
 
     def query(self, prompt: str) -> Dict[str, Any]:
         """
@@ -128,22 +69,34 @@ class RAGProvider:
             payload = {
                 "query": prompt,
                 "file_id": self.file_id,
-                "k": self.k
+                "k": self.k,
+                "use_llm": self.use_llm
             }
 
             response = requests.post(
                 self.endpoint,
                 json=payload,
-                timeout=30
+                timeout=120  # Increased timeout for LLM generation
             )
             response.raise_for_status()
 
             data = response.json()
 
-            # API returns list of [document, score] pairs
-            # Extract page_content from results
+            # Handle new QueryResponse format (when use_llm=true)
+            if isinstance(data, dict) and "answer" in data:
+                return {
+                    "output": data.get("answer", "No answer generated"),
+                    "metadata": {
+                        "sources": data.get("sources", []),
+                        "llm_generated": data.get("llm_generated", False),
+                        "file_id": self.file_id,
+                        "k": self.k
+                    }
+                }
+
+            # Handle legacy format (list of [document, score] pairs)
+            # This happens when use_llm=false or API doesn't support LLM yet
             if isinstance(data, list) and len(data) > 0:
-                # Combine all page_content from results
                 contents = []
                 sources = []
                 for item in data:
@@ -153,26 +106,21 @@ class RAGProvider:
                             contents.append(doc.get("page_content", ""))
                             sources.append(doc.get("metadata", {}))
 
-                raw_context = "\n\n".join(contents) if contents else "No results found"
-            else:
-                raw_context = str(data)
-                sources = []
-
-            # Use LLM to generate focused answer if enabled
-            if self.use_llm and self.llm and self.llm.is_configured():
-                output = self.llm.generate(prompt, raw_context)
-            else:
-                output = raw_context
-
-            # Return in format expected by Promptfoo
-            return {
-                "output": output,
-                "metadata": {
-                    "sources": sources,
-                    "file_id": self.file_id,
-                    "k": self.k,
-                    "llm_enabled": self.use_llm
+                output = "\n\n".join(contents) if contents else "No results found"
+                return {
+                    "output": output,
+                    "metadata": {
+                        "sources": sources,
+                        "file_id": self.file_id,
+                        "k": self.k,
+                        "llm_generated": False
+                    }
                 }
+
+            # Fallback
+            return {
+                "output": str(data),
+                "metadata": {"file_id": self.file_id, "k": self.k}
             }
 
         except requests.exceptions.RequestException as e:
@@ -223,6 +171,8 @@ if __name__ == "__main__":
 def call_api(prompt: str, options: dict = None, context: dict = None) -> dict:
     """
     Promptfoo provider interface function.
+
+    This is the function Promptfoo calls when using this as a Python provider.
 
     Args:
         prompt: The prompt to send to the API
